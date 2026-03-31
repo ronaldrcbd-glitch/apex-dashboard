@@ -489,43 +489,42 @@ with tab_payout:
         all_pass = rules_passed == 4
         border_color = "#22c55e" if all_pass else "rgba(51,65,85,0.5)"
         glow = "box-shadow: 0 0 20px rgba(34,197,94,0.15);" if all_pass else ""
+        ready_html = " &#10003; PAYOUT READY" if all_pass else ""
 
-        st.markdown(f"""
-        <div class="payout-card" style="border-color:{border_color};{glow}">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div>
-                    <span class="payout-acct">{sid}</span> &nbsp;
-                    {badge(a["_status"])}
-                    {"&nbsp; <span style='color:#4ade80; font-weight:700; font-size:0.8rem;'>&#10003; PAYOUT READY</span>" if all_pass else ""}
-                </div>
-                <div style="color:#94a3b8; font-size:0.8rem; font-weight:600;">{rules_passed}/4 rules</div>
-            </div>
-            <div class="payout-rule">
-                <span style="width:16px;" class="{"payout-pass" if r["profit_target"] else "payout-fail"}">{"&#10003;" if r["profit_target"] else "&#10007;"}</span>
-                <span style="color:#94a3b8; width:140px; font-weight:600;">Profit Target</span>
-                <div class="payout-bar-bg"><div class="payout-bar-fill" style="width:{profit_pct:.0f}%;background:{"#4ade80" if r["profit_target"] else "#3b82f6"};"></div></div>
-                <span style="color:#e2e8f0; width:100px; text-align:right; font-weight:600;">${a["profit_total"]:+,.0f} / ${profit_target:,.0f}</span>
-            </div>
-            <div class="payout-rule">
-                <span style="width:16px;" class="{"payout-pass" if r["min_days"] else "payout-fail"}">{"&#10003;" if r["min_days"] else "&#10007;"}</span>
-                <span style="color:#94a3b8; width:140px; font-weight:600;">Min 8 Days</span>
-                <div class="payout-bar-bg"><div class="payout-bar-fill" style="width:{days_pct:.0f}%;background:{"#4ade80" if r["min_days"] else "#eab308"};"></div></div>
-                <span style="color:#e2e8f0; width:100px; text-align:right; font-weight:600;">{a["days_traded"]} / {a["min_days_required"]}</span>
-            </div>
-            <div class="payout-rule">
-                <span style="width:16px;" class="{"payout-pass" if r["fifty_dollar_days"] else "payout-fail"}">{"&#10003;" if r["fifty_dollar_days"] else "&#10007;"}</span>
-                <span style="color:#94a3b8; width:140px; font-weight:600;">5x $50+ Days</span>
-                <div class="payout-bar-bg"><div class="payout-bar-fill" style="width:{fifty_pct:.0f}%;background:{"#4ade80" if r["fifty_dollar_days"] else "#a855f7"};"></div></div>
-                <span style="color:#e2e8f0; width:100px; text-align:right; font-weight:600;">{a["_fifty_days"]} / 5</span>
-            </div>
-            <div class="payout-rule">
-                <span style="width:16px;" class="{"payout-pass" if r["consistency"] else "payout-fail"}">{"&#10003;" if r["consistency"] else "&#10007;"}</span>
-                <span style="color:#94a3b8; width:140px; font-weight:600;">Consistency</span>
-                <div class="payout-bar-bg"><div class="payout-bar-fill" style="width:{cons_pct:.0f}%;background:{"#4ade80" if r["consistency"] else "#f87171"};"></div></div>
-                <span style="color:#e2e8f0; width:100px; text-align:right; font-weight:600;">{a["_consistency"]:.1f}% / 30%</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # Build each rule row
+        def rule_row(passed, label, pct, color_pass, color_fail, val_text):
+            cls = "payout-pass" if passed else "payout-fail"
+            icon = "&#10003;" if passed else "&#10007;"
+            bar_color = color_pass if passed else color_fail
+            return (
+                '<div class="payout-rule">'
+                f'<span style="width:16px;" class="{cls}">{icon}</span>'
+                f'<span style="color:#94a3b8; width:140px; font-weight:600;">{label}</span>'
+                f'<div class="payout-bar-bg"><div class="payout-bar-fill" style="width:{pct:.0f}%;background:{bar_color};"></div></div>'
+                f'<span style="color:#e2e8f0; width:100px; text-align:right; font-weight:600;">{val_text}</span>'
+                '</div>'
+            )
+
+        profit_val = f"${a['profit_total']:+,.0f} / ${profit_target:,.0f}"
+        days_val = f"{a['days_traded']} / {a['min_days_required']}"
+        fifty_val = f"{a['_fifty_days']} / 5"
+        cons_val = f"{a['_consistency']:.1f}% / 30%"
+
+        row1 = rule_row(r["profit_target"], "Profit Target", profit_pct, "#4ade80", "#3b82f6", profit_val)
+        row2 = rule_row(r["min_days"], "Min 8 Days", days_pct, "#4ade80", "#eab308", days_val)
+        row3 = rule_row(r["fifty_dollar_days"], "5x $50+ Days", fifty_pct, "#4ade80", "#a855f7", fifty_val)
+        row4 = rule_row(r["consistency"], "Consistency", cons_pct, "#4ade80", "#f87171", cons_val)
+
+        badge_html = badge(a["_status"])
+        card = (
+            f'<div class="payout-card" style="border-color:{border_color};{glow}">'
+            f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
+            f'<div><span class="payout-acct">{sid}</span> {badge_html}'
+            f'<span style="color:#4ade80; font-weight:700; font-size:0.8rem;">{ready_html}</span></div>'
+            f'<div style="color:#94a3b8; font-size:0.8rem; font-weight:600;">{rules_passed}/4 rules</div>'
+            f'</div>{row1}{row2}{row3}{row4}</div>'
+        )
+        st.markdown(card, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════
@@ -824,7 +823,7 @@ with tab_charts:
                     r=vals, theta=categories + [categories[0]],
                     fill="toself", name=sid,
                     line=dict(color=palette[i], width=2),
-                    fillcolor=f"rgba{tuple(int(palette[i].lstrip('#')[j:j+2], 16) for j in (0, 2, 4)) + (0.1,)}",
+                    fillcolor="rgba({},{},{},0.1)".format(*[int(palette[i].lstrip('#')[j:j+2], 16) for j in (0, 2, 4)]),
                 ))
 
             fig_radar.update_layout(
