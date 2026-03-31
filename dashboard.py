@@ -2,7 +2,6 @@ import json
 import plotly.graph_objects as go
 import streamlit as st
 import pandas as pd
-import numpy as np
 from datetime import datetime as _dt
 from pathlib import Path
 
