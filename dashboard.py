@@ -790,8 +790,7 @@ with tab_charts:
             colorscale=[[0, "#dc2626"], [0.35, "#991b1b"], [0.5, "#1e293b"], [0.65, "#166534"], [1, "#22c55e"]],
             zmid=0, zmin=-500, zmax=500,
             hovertemplate="%{y}<br>%{x}<br>$%{z:+,.0f}<extra></extra>",
-            colorbar=dict(title="P&L", tickprefix="$", tickfont=dict(color="#94a3b8"),
-                          titlefont=dict(color="#94a3b8")),
+            colorbar=dict(title=dict(text="P&L", font=dict(color="#94a3b8")), tickprefix="$", tickfont=dict(color="#94a3b8")),
         ))
         fig_hm.update_layout(
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
