@@ -205,6 +205,11 @@ def badge(status):
     return f'<span class="badge badge-{status.lower()}">{status}</span>'
 
 
+def cp(v):
+    c = "#4ade80" if v >= 0 else "#f87171"
+    return f"color: {c}; font-weight: 600"
+
+
 def render_mini_pnl(daily_pnl):
     if not daily_pnl:
         return ""
